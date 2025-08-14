@@ -1,0 +1,572 @@
+{
+	"info": {
+		"_postman_id": "orderflow-api-collection",
+		"name": "OrderFlow API",
+		"description": "Complete API collection for OrderFlow E-commerce Order Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Customer Registration",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"customer@example.com\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"phone_number\": \"+254712345678\",\n    \"address\": \"123 Main St, Nairobi\",\n    \"date_of_birth\": \"1990-01-01\",\n    \"password\": \"securepassword123\",\n    \"password_confirm\": \"securepassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/register/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "register", ""]
+						}
+					}
+				},
+				{
+					"name": "Customer Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"customer@example.com\",\n    \"password\": \"securepassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "login", ""]
+						}
+					}
+				},
+				{
+					"name": "Customer Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/logout/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "logout", ""]
+						}
+					}
+				},
+				{
+					"name": "OIDC Login Initiate",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/oidc/login/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "oidc", "login", ""]
+						}
+					}
+				},
+				{
+					"name": "OIDC Token Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id_token\": \"your_oidc_id_token_here\",\n    \"access_token\": \"your_oidc_access_token_here\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/oidc/token/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "oidc", "token", ""]
+						}
+					}
+				},
+				{
+					"name": "OIDC User Info",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/oidc/userinfo/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "oidc", "userinfo", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "List Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", ""]
+						}
+					}
+				},
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Electronics\",\n    \"description\": \"Electronic devices and gadgets\",\n    \"parent\": null,\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Category Tree",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/tree/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", "tree", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Category Average Price",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/{{category_id}}/average_price/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", "{{category_id}}", "average_price", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "List Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", ""]
+						}
+					}
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"iPhone 15 Pro\",\n    \"description\": \"Latest iPhone with advanced features\",\n    \"price\": \"999.99\",\n    \"category\": 1,\n    \"stock_quantity\": 50,\n    \"status\": \"active\",\n    \"is_featured\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", ""]
+						}
+					}
+				},
+				{
+					"name": "Upload Product with Image",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "MacBook Pro",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Professional laptop for developers",
+									"type": "text"
+								},
+								{
+									"key": "price",
+									"value": "1999.99",
+									"type": "text"
+								},
+								{
+									"key": "category",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "stock_quantity",
+									"value": "25",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/upload/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", "upload", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Featured Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/featured/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", "featured", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Low Stock Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/low_stock/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", "low_stock", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "List My Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/my_orders/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "orders", "my_orders", ""]
+						}
+					}
+				},
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"shipping_address\": \"123 Main St, Nairobi, Kenya\",\n    \"billing_address\": \"123 Main St, Nairobi, Kenya\",\n    \"phone_number\": \"+254712345678\",\n    \"payment_method\": \"mpesa\",\n    \"items\": [\n        {\n            \"product_id\": 1,\n            \"quantity\": 2\n        },\n        {\n            \"product_id\": 2,\n            \"quantity\": 1\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "orders", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Order Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/{{order_id}}/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "orders", "{{order_id}}", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Order Status (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"confirmed\",\n    \"notes\": \"Order confirmed and ready for processing\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/{{order_id}}/update_status/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "orders", "{{order_id}}", "update_status", ""]
+						}
+					}
+				},
+				{
+					"name": "Cancel Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/{{order_id}}/cancel/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "orders", "{{order_id}}", "cancel", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Pending Orders (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/pending/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "orders", "pending", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Order Statistics (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/statistics/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "orders", "statistics", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Customer Profile",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customers/profile/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customers", "profile", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"John Updated\",\n    \"last_name\": \"Doe Updated\",\n    \"phone_number\": \"+254712345679\",\n    \"address\": \"456 New St, Nairobi\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customers/update_profile/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customers", "update_profile", ""]
+						}
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"old_password\": \"securepassword123\",\n    \"new_password\": \"newsecurepassword456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customers/change_password/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customers", "change_password", ""]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "your_auth_token_here",
+			"type": "string"
+		},
+		{
+			"key": "category_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "order_id",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}
