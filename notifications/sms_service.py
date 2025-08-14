@@ -149,7 +149,7 @@ class SMSService:
         customer = order.customer
         message = f"""
 Order #{order.order_number} confirmed!
-Total: ${order.total_amount}
+Total: Ksh {order.total_amount}
 Status: {order.status.title()}
 Thank you for your order!
         """.strip()
@@ -207,7 +207,7 @@ Track your order at our website.
         customer = order.customer
         message = f"""
 Your order #{order.order_number} has been delivered!
-Total: ${order.total_amount}
+Total: Ksh {order.total_amount}
 Thank you for shopping with us!
         """.strip()
         

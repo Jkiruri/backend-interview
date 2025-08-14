@@ -452,7 +452,7 @@ def create_orders(customers, products):
             order.calculate_total()
             order.save()
             
-            print(f"✅ Created order #{order.order_number} for {customer.full_name} - ${order.total_amount}")
+            print(f"✅ Created order #{order.order_number} for {customer.full_name} - Ksh {order.total_amount}")
 
 def main():
     """Run all seeders"""

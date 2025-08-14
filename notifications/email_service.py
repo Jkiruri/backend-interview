@@ -112,7 +112,7 @@ Thank you for your order! Your order has been confirmed.
 
 Order Details:
 - Order Number: {order.order_number}
-- Total Amount: ${order.total_amount}
+- Total Amount: Ksh {order.total_amount}
 - Status: {order.status.title()}
 - Date: {order.created_at.strftime('%B %d, %Y')}
 
@@ -169,7 +169,7 @@ Order Details:
 - Order Number: {order.order_number}
 - Previous Status: {old_status.title()}
 - New Status: {new_status.title()}
-- Total Amount: ${order.total_amount}
+- Total Amount: Ksh {order.total_amount}
 
 You can track your order at our website.
 
@@ -212,7 +212,7 @@ Great news! Your order has been delivered.
 
 Order Details:
 - Order Number: {order.order_number}
-- Total Amount: ${order.total_amount}
+- Total Amount: Ksh {order.total_amount}
 - Delivery Date: {timezone.now().strftime('%B %d, %Y')}
 
 We hope you enjoy your purchase! If you have any questions or concerns, please don't hesitate to contact us.
@@ -247,7 +247,7 @@ OrderFlow Team
         """Format order items for email"""
         items_text = ""
         for item in order.items.all():
-            items_text += f"- {item.product.name} x{item.quantity} @ ${item.unit_price} = ${item.quantity * item.unit_price}\n"
+            items_text += f"- {item.product.name} x{item.quantity} @ Ksh {item.unit_price} = Ksh {item.quantity * item.unit_price}\n"
         return items_text
     
     def _render_order_confirmation_html(self, order):
@@ -271,7 +271,7 @@ OrderFlow Team
                 <h3>Order Details:</h3>
                 <ul>
                     <li>Order Number: {order.order_number}</li>
-                    <li>Total Amount: ${order.total_amount}</li>
+                    <li>Total Amount: Ksh {order.total_amount}</li>
                     <li>Status: {order.status.title()}</li>
                     <li>Date: {order.created_at.strftime('%B %d, %Y')}</li>
                 </ul>
