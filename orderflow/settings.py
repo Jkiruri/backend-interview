@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'customers',
     'products',
     'orders',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -150,8 +151,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
+        'customers.authentication.APITokenAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
         'mozilla_django_oidc.contrib.drf.OIDCAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -170,16 +172,19 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True  # For development only
 
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
@@ -210,10 +215,14 @@ OIDC_OP_TOKEN_ENDPOINT = config('OIDC_ISSUER_URL', default='https://your-oidc-pr
 OIDC_OP_USER_ENDPOINT = config('OIDC_ISSUER_URL', default='https://your-oidc-provider.com') + '/userinfo'
 OIDC_OP_JWKS_ENDPOINT = config('OIDC_ISSUER_URL', default='https://your-oidc-provider.com') + '/.well-known/jwks.json'
 
-# OIDC Authentication Backend
+# Django Allauth Configuration
+SITE_ID = 1
+
+# Authentication Backends
 AUTHENTICATION_BACKENDS = (
-    'customers.oidc.CustomerOIDCAuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'customers.oidc.CustomerOIDCAuthenticationBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 # OIDC Settings
@@ -223,15 +232,6 @@ OIDC_VERIFY_SSL = True
 OIDC_USERNAME_ALGO = 'mozilla_django_oidc.auth.generate_username'
 OIDC_STORE_ACCESS_TOKEN = True
 OIDC_STORE_ID_TOKEN = True
-
-# Django Allauth Configuration
-SITE_ID = 1
-
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'customers.oidc.CustomerOIDCAuthenticationBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-)
 
 # Allauth Settings
 ACCOUNT_EMAIL_REQUIRED = True
@@ -254,4 +254,99 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'OAUTH_PKCE_ENABLED': True,
     }
+}
+
+# Africa's Talking Configuration
+AFRICASTALKING_API_KEY = config('AFRICASTALKING_API_KEY', default='your-api-key')
+AFRICASTALKING_USERNAME = config('AFRICASTALKING_USERNAME', default='your-username')
+AFRICASTALKING_SENDER_ID = config('AFRICASTALKING_SENDER_ID', default='ORDERFLOW')
+
+# CSRF Configuration for API
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
+
+# CSRF settings for API endpoints
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access for API
+CSRF_USE_SESSIONS = False
+
+# Logging Configuration (similar to Laravel's laravel.log)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+        'sms_formatter': {
+            'format': '[{asctime}] {levelname}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'orderflow.log'),
+            'formatter': 'verbose',
+        },
+        'sms_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'sms.log'),
+            'formatter': 'sms_formatter',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'error.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'notifications': {
+            'handlers': ['sms_file', 'console', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'notifications.sms_service': {
+            'handlers': ['sms_file', 'console', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'notifications.email_service': {
+            'handlers': ['sms_file', 'console', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'notifications.notification_manager': {
+            'handlers': ['sms_file', 'console', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'orders': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }

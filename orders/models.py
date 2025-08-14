@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from customers.models import Customer
 from products.models import Product
+from model_utils import FieldTracker
 import uuid
 
 
@@ -98,6 +99,9 @@ class Order(models.Model):
                 product = item.product
                 product.stock_quantity = max(0, product.stock_quantity - item.quantity)
                 product.save()
+    
+    # Field tracker for detecting status changes
+    tracker = FieldTracker(fields=['status'])
 
 
 class OrderItem(models.Model):

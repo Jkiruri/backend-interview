@@ -33,7 +33,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderItemCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating order items"""
-    product_id = serializers.IntegerField(write_only=True)
+    product_id = serializers.UUIDField(write_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_sku = serializers.CharField(source='product.sku', read_only=True)
     

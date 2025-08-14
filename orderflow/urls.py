@@ -23,6 +23,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
+from django.views.decorators.csrf import csrf_exempt
 
 # Import views
 from customers.views import (
@@ -32,6 +33,7 @@ from customers.oidc_views import CustomerOIDCLoginView, oidc_token_login, oidc_u
 from customers.google_oauth import google_login, google_token_login, google_user_info
 from products.views import CategoryViewSet, ProductViewSet
 from orders.views import OrderViewSet
+from notifications.views import NotificationViewSet, NotificationAdminViewSet
 
 # Create router for ViewSets
 router = DefaultRouter()
@@ -39,6 +41,8 @@ router.register(r'customers', CustomerViewSet, basename='customer')
 router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'products', ProductViewSet, basename='product')
 router.register(r'orders', OrderViewSet, basename='order')
+router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register(r'admin/notifications', NotificationAdminViewSet, basename='admin-notification')
 
 # Swagger/OpenAPI documentation
 schema_view = get_schema_view(

@@ -3,20 +3,24 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import login, logout
+from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from .models import Customer
 from .serializers import (
     CustomerRegistrationSerializer, CustomerLoginSerializer,
     CustomerSerializer, CustomerProfileUpdateSerializer
 )
+from .mixins import CSRFExemptMixin
 
 
-class CustomerRegistrationView(generics.CreateAPIView):
+class CustomerRegistrationView(CSRFExemptMixin, generics.CreateAPIView):
     """View for customer registration"""
     queryset = Customer.objects.all()
     serializer_class = CustomerRegistrationSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []  # Disable authentication for registration
     
     def create(self, request, *args, **kwargs):
         """Create a new customer account"""
@@ -35,17 +39,17 @@ class CustomerRegistrationView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CustomerLoginView(generics.GenericAPIView):
+class CustomerLoginView(CSRFExemptMixin, generics.GenericAPIView):
     """View for customer login"""
     serializer_class = CustomerLoginSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []  # Disable authentication for login
     
     def post(self, request, *args, **kwargs):
         """Authenticate customer and return token"""
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            login(request, user)
             
             # Create or get authentication token
             token, created = Token.objects.get_or_create(user=user)
@@ -59,7 +63,7 @@ class CustomerLoginView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CustomerLogoutView(generics.GenericAPIView):
+class CustomerLogoutView(CSRFExemptMixin, generics.GenericAPIView):
     """View for customer logout"""
     permission_classes = [IsAuthenticated]
     
@@ -71,7 +75,6 @@ class CustomerLogoutView(generics.GenericAPIView):
         except:
             pass
         
-        logout(request)
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
 
