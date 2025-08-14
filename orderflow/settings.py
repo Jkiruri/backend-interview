@@ -39,12 +39,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     
     # Third party apps
-    'rest_framework',
-    'corsheaders',
-    'drf_yasg',
-    'django_filters',
+                'rest_framework',
+                'rest_framework.authtoken',
+                'corsheaders',
+                'drf_yasg',
+                'django_filters',
+                'mozilla_django_oidc',
+                'allauth',
+                'allauth.account',
+                'allauth.socialaccount',
+                'allauth.socialaccount.providers.google',
     
     # Local apps
     'customers',
@@ -61,6 +68,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'orderflow.urls'
@@ -144,6 +152,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'mozilla_django_oidc.contrib.drf.OIDCAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -191,3 +200,58 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Custom User Model
 AUTH_USER_MODEL = 'customers.Customer'
+
+# OpenID Connect Configuration
+OIDC_RP_CLIENT_ID = config('OIDC_CLIENT_ID', default='your-client-id')
+OIDC_RP_CLIENT_SECRET = config('OIDC_CLIENT_SECRET', default='your-client-secret')
+OIDC_RP_SIGN_ALGO = 'RS256'
+OIDC_OP_AUTHORIZATION_ENDPOINT = config('OIDC_ISSUER_URL', default='https://your-oidc-provider.com') + '/auth'
+OIDC_OP_TOKEN_ENDPOINT = config('OIDC_ISSUER_URL', default='https://your-oidc-provider.com') + '/token'
+OIDC_OP_USER_ENDPOINT = config('OIDC_ISSUER_URL', default='https://your-oidc-provider.com') + '/userinfo'
+OIDC_OP_JWKS_ENDPOINT = config('OIDC_ISSUER_URL', default='https://your-oidc-provider.com') + '/.well-known/jwks.json'
+
+# OIDC Authentication Backend
+AUTHENTICATION_BACKENDS = (
+    'customers.oidc.CustomerOIDCAuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+# OIDC Settings
+OIDC_CREATE_USER = True
+OIDC_USE_NONCE = True
+OIDC_VERIFY_SSL = True
+OIDC_USERNAME_ALGO = 'mozilla_django_oidc.auth.generate_username'
+OIDC_STORE_ACCESS_TOKEN = True
+OIDC_STORE_ID_TOKEN = True
+
+# Django Allauth Configuration
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'customers.oidc.CustomerOIDCAuthenticationBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+# Allauth Settings
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Social Account Providers
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    }
+}

@@ -6,6 +6,7 @@ A comprehensive Django-based order management system with hierarchical product c
 
 - **Hierarchical Product Categories**: Support for unlimited depth category organization
 - **Customer Management**: Custom user model with email-based authentication
+- **OpenID Connect Authentication**: Primary authentication method as required by assessment
 - **Order Processing**: Complete order lifecycle management
 - **RESTful API**: Full-featured API with Django REST Framework
 - **Database**: PostgreSQL with proper relationships and constraints
@@ -90,8 +91,11 @@ backend-interview/
 
 ### Customers
 - Custom user model extending Django's AbstractUser
-- Email-based authentication
+- Multiple authentication methods:
+  - **OpenID Connect (Primary)**: OIDC provider integration
+  - **Email-based authentication**: Traditional login
 - Customer-specific fields (phone, address, etc.)
+- Automatic user creation from OIDC claims
 
 ### Categories
 - Hierarchical structure with unlimited depth
@@ -109,6 +113,44 @@ backend-interview/
 - Order items with quantities and pricing
 - Status tracking
 - Payment integration
+
+## API Endpoints
+
+### Authentication
+- `POST /api/v1/auth/register/` - Customer registration
+- `POST /api/v1/auth/login/` - Customer login
+- `POST /api/v1/auth/logout/` - Customer logout
+- `POST /api/v1/auth/token/` - Get authentication token
+
+### OpenID Connect
+- `GET /api/v1/auth/oidc/login/` - Initiate OIDC login flow
+- `POST /api/v1/auth/oidc/token/` - Exchange OIDC tokens for API tokens
+- `GET /api/v1/auth/oidc/userinfo/` - Get OIDC user information
+
+### Categories
+- `GET /api/v1/categories/` - List categories
+- `POST /api/v1/categories/` - Create category
+- `GET /api/v1/categories/tree/` - Get category hierarchy
+- `GET /api/v1/categories/{id}/average_price/` - Get average price for category
+
+### Products
+- `GET /api/v1/products/` - List products
+- `POST /api/v1/products/` - Create product
+- `POST /api/v1/products/upload/` - Upload product with image
+- `GET /api/v1/products/featured/` - Get featured products
+- `GET /api/v1/products/low_stock/` - Get low stock products
+
+### Orders
+- `GET /api/v1/orders/` - List orders
+- `POST /api/v1/orders/` - Create order
+- `GET /api/v1/orders/my_orders/` - Get user's orders
+- `POST /api/v1/orders/{id}/update_status/` - Update order status
+- `POST /api/v1/orders/{id}/cancel/` - Cancel order
+
+### Customer Profile
+- `GET /api/v1/customers/profile/` - Get user profile
+- `PUT /api/v1/customers/update_profile/` - Update profile
+- `POST /api/v1/customers/change_password/` - Change password
 
 ## Testing
 
