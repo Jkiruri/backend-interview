@@ -29,6 +29,7 @@ from django.views.decorators.csrf import csrf_exempt
 from customers.views import (
     CustomerRegistrationView, CustomerLoginView, CustomerLogoutView, CustomerViewSet
 )
+from customers.admin_views import AdminViewSet, CustomerAdminViewSet
 from customers.oidc_views import CustomerOIDCLoginView, oidc_token_login, oidc_user_info
 from customers.google_oauth import google_login, google_token_login, google_user_info
 from products.views import CategoryViewSet, ProductViewSet
@@ -43,6 +44,11 @@ router.register(r'products', ProductViewSet, basename='product')
 router.register(r'orders', OrderViewSet, basename='order')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 router.register(r'admin/notifications', NotificationAdminViewSet, basename='admin-notification')
+
+# Admin router
+admin_router = DefaultRouter()
+admin_router.register(r'admin', AdminViewSet, basename='admin')
+admin_router.register(r'admin/customers', CustomerAdminViewSet, basename='admin-customer')
 
 # Swagger/OpenAPI documentation
 schema_view = get_schema_view(
@@ -87,6 +93,7 @@ urlpatterns = [
         
         # Router URLs for ViewSets
         path('', include(router.urls)),
+        path('', include(admin_router.urls)),
     ])),
     
     # API Documentation

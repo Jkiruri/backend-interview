@@ -138,6 +138,32 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         order.calculate_total()
         order.save()
         
+        # Trigger notifications after all items are created
+        # This ensures the admin email includes the order items
+        try:
+            from notifications.tasks import send_order_confirmation, send_admin_order_notification
+            
+            # Queue customer notifications (SMS + Email)
+            customer_task = send_order_confirmation.delay(
+                str(order.id), 
+                send_sms=True, 
+                send_email=True
+            )
+            
+            # Queue admin notifications
+            admin_task = send_admin_order_notification.delay(str(order.id))
+            
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Order confirmation tasks queued for order {order.order_number}")
+            logger.info(f"  - Customer task ID: {customer_task.id}")
+            logger.info(f"  - Admin task ID: {admin_task.id}")
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error queueing notifications for order {order.order_number}: {e}")
+        
         return order
 
 

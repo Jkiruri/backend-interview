@@ -1,55 +1,41 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from orders.models import Order
-from .notification_manager import NotificationManager
+from .tasks import send_order_status_update, send_delivery_notification
 import logging
 
 logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=Order)
-def send_order_notifications(sender, instance, created, **kwargs):
+def handle_order_status_change(sender, instance, created, **kwargs):
     """
-    Send notifications when order is created or status changes
+    Handle order status changes (not creation)
+    Order creation notifications are handled in the serializer
     """
-    notification_manager = NotificationManager()
-    
-    try:
-        if created:
-            # New order - send confirmation
-            logger.info(f"Sending order confirmation for new order {instance.order_number}")
-            result = notification_manager.send_order_confirmation(instance)
-            
-            if result['success']:
-                logger.info(f"Order confirmation sent successfully for order {instance.order_number}")
-            else:
-                logger.error(f"Failed to send order confirmation for order {instance.order_number}")
+    if not created and hasattr(instance, 'tracker') and instance.tracker.has_changed('status'):
+        old_status = instance.tracker.previous('status')
+        new_status = instance.status
         
-        else:
-            # Existing order - check if status changed
-            if instance.tracker.has_changed('status'):
-                old_status = instance.tracker.previous('status')
-                new_status = instance.status
+        logger.info(f"Queueing status update for order {instance.order_number}: {old_status} → {new_status}")
+        
+        try:
+            # Queue status update notifications
+            status_task = send_order_status_update.delay(
+                str(instance.id), 
+                old_status, 
+                new_status, 
+                send_sms=True, 
+                send_email=True
+            )
+            
+            logger.info(f"Status update task queued for order {instance.order_number} - Task ID: {status_task.id}")
+            
+            # Queue delivery notification if status is 'delivered'
+            if new_status == 'delivered':
+                logger.info(f"Queueing delivery notification for order {instance.order_number}")
+                delivery_task = send_delivery_notification.delay(str(instance.id))
+                logger.info(f"Delivery notification task queued - Task ID: {delivery_task.id}")
                 
-                logger.info(f"Order status changed from {old_status} to {new_status} for order {instance.order_number}")
-                
-                # Send status update notification
-                result = notification_manager.send_order_status_update(instance, old_status, new_status)
-                
-                if result['success']:
-                    logger.info(f"Status update notification sent successfully for order {instance.order_number}")
-                else:
-                    logger.error(f"Failed to send status update for order {instance.order_number}")
-                
-                # Send delivery notification if status is 'delivered'
-                if new_status == 'delivered':
-                    logger.info(f"Sending delivery notification for order {instance.order_number}")
-                    delivery_result = notification_manager.send_delivery_notification(instance)
-                    
-                    if delivery_result['success']:
-                        logger.info(f"Delivery notification sent successfully for order {instance.order_number}")
-                    else:
-                        logger.error(f"Failed to send delivery notification for order {instance.order_number}")
-    
-    except Exception as e:
-        logger.error(f"Error in order notification signal for order {instance.order_number}: {e}")
+        except Exception as e:
+            logger.error(f"Error queueing status update for order {instance.order_number}: {e}")
 

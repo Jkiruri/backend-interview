@@ -1,5 +1,6 @@
 from .sms_service import SMSService
 from .email_service import EmailService
+from .admin_service import AdminService
 from .models import Notification
 from .tasks import send_sms_notification, send_email_notification, send_order_confirmation, send_order_status_update
 import logging
@@ -12,8 +13,9 @@ class NotificationManager:
     def __init__(self):
         self.sms_service = SMSService()
         self.email_service = EmailService()
+        self.admin_service = AdminService()
     
-    def send_order_confirmation(self, order, send_sms=True, send_email=True):
+    def send_order_confirmation(self, order, send_sms=True, send_email=True, send_admin_notification=True):
         """
         Send order confirmation notifications asynchronously using Celery
         
@@ -21,6 +23,7 @@ class NotificationManager:
             order: Order object
             send_sms (bool): Whether to send SMS
             send_email (bool): Whether to send email
+            send_admin_notification (bool): Whether to send admin notification
             
         Returns:
             dict: Results with task IDs
@@ -35,11 +38,18 @@ class NotificationManager:
             
             logger.info(f"Order confirmation task queued for order {order.order_number} - Task ID: {task_result.id}")
             
+            # Send admin notification immediately (not async)
+            admin_result = None
+            if send_admin_notification:
+                admin_result = self.admin_service.send_order_notification_to_admins(order)
+                logger.info(f"Admin notification sent for order {order.order_number}")
+            
             return {
                 'success': True,
                 'task_id': task_result.id,
                 'status': 'queued',
-                'message': 'Order confirmation notifications queued successfully'
+                'message': 'Order confirmation notifications queued successfully',
+                'admin_notification': admin_result
             }
             
         except Exception as e:

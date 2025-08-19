@@ -298,3 +298,89 @@ def send_bulk_email_notifications(notification_ids):
     
     return {'results': results, 'total_count': len(notification_ids)}
 
+@shared_task
+def send_admin_order_notification(order_id):
+    """
+    Send order notification to all admins asynchronously
+    
+    Args:
+        order_id (str): UUID of the order
+        
+    Returns:
+        dict: Results of sending notifications
+    """
+    from orders.models import Order
+    from .admin_service import AdminService
+    
+    try:
+        order = Order.objects.get(id=order_id)
+        admin_service = AdminService()
+        
+        result = admin_service.send_order_notification_to_admins(order)
+        
+        if result.get('success'):
+            logger.info(f"Admin order notification sent for order {order.order_number}")
+        else:
+            logger.error(f"Failed to send admin notification for order {order.order_number}: {result.get('error')}")
+        
+        return result
+        
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        return {'error': 'Order not found'}
+    except Exception as e:
+        logger.error(f"Error sending admin notification for order {order_id}: {e}")
+        return {'error': str(e)}
+
+@shared_task
+def send_delivery_notification(order_id, send_sms=True, send_email=True):
+    """
+    Send delivery notification asynchronously
+    
+    Args:
+        order_id (str): UUID of the order
+        send_sms (bool): Whether to send SMS
+        send_email (bool): Whether to send email
+        
+    Returns:
+        dict: Results from both services
+    """
+    from orders.models import Order
+    
+    try:
+        order = Order.objects.get(id=order_id)
+        results = {'sms': None, 'email': None, 'success': False}
+        
+        # Send SMS if enabled and customer has phone number
+        if send_sms and order.customer.phone_number:
+            sms_service = SMSService()
+            sms_result = sms_service.send_delivery_notification(order)
+            results['sms'] = sms_result
+            
+            if sms_result.get('success'):
+                logger.info(f"SMS delivery notification sent for order {order.order_number}")
+        
+        # Send email if enabled
+        if send_email:
+            email_service = EmailService()
+            email_result = email_service.send_delivery_notification(order)
+            results['email'] = email_result
+            
+            if email_result.get('success'):
+                logger.info(f"Email delivery notification sent for order {order.order_number}")
+        
+        # Consider successful if at least one notification was sent
+        results['success'] = (
+            (results['sms'] and results['sms'].get('success', False)) or
+            (results['email'] and results['email'].get('success', False))
+        )
+        
+        return results
+        
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        return {'error': 'Order not found'}
+    except Exception as e:
+        logger.error(f"Error sending delivery notification for order {order_id}: {e}")
+        return {'error': str(e)}
+

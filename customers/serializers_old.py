@@ -13,8 +13,7 @@ class CustomerRegistrationSerializer(serializers.ModelSerializer):
         model = Customer
         fields = [
             'email', 'first_name', 'last_name', 'phone_number',
-            'address', 'city', 'state', 'country', 'postal_code', 
-            'password', 'password_confirm'
+            'address', 'date_of_birth', 'password', 'password_confirm'
         ]
         extra_kwargs = {
             'first_name': {'required': True},
@@ -69,8 +68,8 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = [
             'id', 'email', 'first_name', 'last_name', 'full_name',
-            'phone_number', 'address', 'city', 'state', 'country', 
-            'postal_code', 'is_verified', 'created_at', 'updated_at'
+            'phone_number', 'address', 'date_of_birth', 'is_verified',
+            'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'email', 'created_at', 'updated_at']
     
@@ -88,7 +87,7 @@ class CustomerProfileUpdateSerializer(serializers.ModelSerializer):
         model = Customer
         fields = [
             'first_name', 'last_name', 'phone_number',
-            'address', 'city', 'state', 'country', 'postal_code'
+            'address', 'date_of_birth'
         ]
     
     def validate_phone_number(self, value):
@@ -96,70 +95,3 @@ class CustomerProfileUpdateSerializer(serializers.ModelSerializer):
         if value and not value.startswith('+'):
             raise serializers.ValidationError("Phone number must start with country code (e.g., +254).")
         return value
-
-
-# Admin Serializers
-class AdminSerializer(serializers.ModelSerializer):
-    """Serializer for Admin model"""
-    
-    class Meta:
-        model = Admin
-        fields = [
-            'id', 'user', 'role', 'permissions', 'is_active',
-            'created_at', 'updated_at'
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class AdminCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating admin users"""
-    
-    class Meta:
-        model = Admin
-        fields = [
-            'user', 'role', 'permissions', 'is_active'
-        ]
-
-
-class AdminUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating admin users"""
-    
-    class Meta:
-        model = Admin
-        fields = [
-            'role', 'permissions', 'is_active'
-        ]
-
-
-class CustomerAdminSerializer(serializers.ModelSerializer):
-    """Serializer for admin customer management"""
-    full_name = serializers.ReadOnlyField()
-    
-    class Meta:
-        model = Customer
-        fields = [
-            'id', 'email', 'first_name', 'last_name', 'full_name',
-            'phone_number', 'address', 'city', 'state', 'country', 
-            'postal_code', 'is_verified', 'is_active', 'created_at', 'updated_at'
-        ]
-        read_only_fields = ['id', 'email', 'created_at', 'updated_at']
-
-
-class DashboardSerializer(serializers.Serializer):
-    """Serializer for admin dashboard data"""
-    orders = serializers.DictField()
-    customers = serializers.DictField()
-    products = serializers.DictField()
-    notifications = serializers.DictField()
-
-
-class SystemAlertSerializer(serializers.Serializer):
-    """Serializer for system alerts"""
-    subject = serializers.CharField(max_length=200)
-    message = serializers.CharField()
-    alert_type = serializers.CharField(max_length=50)
-
-
-class AdminPermissionSerializer(serializers.Serializer):
-    """Serializer for admin permissions"""
-    permissions = serializers.ListField(child=serializers.CharField())

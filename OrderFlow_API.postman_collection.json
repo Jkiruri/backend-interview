@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "orderflow-api-collection",
-		"name": "OrderFlow API",
-		"description": "Complete API collection for OrderFlow E-commerce Order Management System",
+		"name": "OrderFlow API Collection",
+		"description": "Complete API collection for OrderFlow e-commerce platform including customer, product, order, and admin management endpoints.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -21,7 +21,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"customer@example.com\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"phone_number\": \"+254712345678\",\n    \"address\": \"123 Main St, Nairobi\",\n    \"date_of_birth\": \"1990-01-01\",\n    \"password\": \"securepassword123\",\n    \"password_confirm\": \"securepassword123\"\n}"
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"password_confirm\": \"password123\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"phone_number\": \"+254700123456\",\n    \"address\": \"123 Test St, Nairobi, Kenya\",\n    \"city\": \"Nairobi\",\n    \"state\": \"Nairobi\",\n    \"country\": \"Kenya\",\n    \"postal_code\": \"00100\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/auth/register/",
@@ -42,7 +42,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"customer@example.com\",\n    \"password\": \"securepassword123\"\n}"
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/auth/login/",
@@ -52,36 +52,7 @@
 					}
 				},
 				{
-					"name": "Customer Logout",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/auth/logout/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "auth", "logout", ""]
-						}
-					}
-				},
-				{
-					"name": "OIDC Login Initiate",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/auth/oidc/login/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "auth", "oidc", "login", ""]
-						}
-					}
-				},
-				{
-					"name": "OIDC Token Login",
+					"name": "Admin Login",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -92,62 +63,45 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id_token\": \"your_oidc_id_token_here\",\n    \"access_token\": \"your_oidc_access_token_here\"\n}"
+							"raw": "{\n    \"email\": \"admin@jameskiruri.co.ke\",\n    \"password\": \"admin123456\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/auth/oidc/token/",
+							"raw": "{{base_url}}/api/v1/auth/login/",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "auth", "oidc", "token", ""]
-						}
-					}
-				},
-				{
-					"name": "OIDC User Info",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/auth/oidc/userinfo/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "auth", "oidc", "userinfo", ""]
+							"path": ["api", "v1", "auth", "login", ""]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "Categories",
+			"name": "Customers",
 			"item": [
 				{
-					"name": "List Categories",
+					"name": "Get Customer Profile",
 					"request": {
 						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{customer_token}}"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/v1/categories/",
+							"raw": "{{base_url}}/api/v1/customers/profile/",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "categories", ""]
+							"path": ["api", "v1", "customers", "profile", ""]
 						}
 					}
 				},
 				{
-					"name": "Create Category",
+					"name": "Update Customer Profile",
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{customer_token}}"
 							},
 							{
 								"key": "Content-Type",
@@ -156,46 +110,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Electronics\",\n    \"description\": \"Electronic devices and gadgets\",\n    \"parent\": null,\n    \"is_active\": true\n}"
+							"raw": "{\n    \"first_name\": \"Updated\",\n    \"last_name\": \"Name\",\n    \"phone_number\": \"+254700123456\",\n    \"address\": \"456 Updated St, Nairobi, Kenya\",\n    \"city\": \"Nairobi\",\n    \"state\": \"Nairobi\",\n    \"country\": \"Kenya\",\n    \"postal_code\": \"00100\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/categories/",
+							"raw": "{{base_url}}/api/v1/customers/profile/",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "categories", ""]
-						}
-					}
-				},
-				{
-					"name": "Get Category Tree",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/categories/tree/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "categories", "tree", ""]
-						}
-					}
-				},
-				{
-					"name": "Get Category Average Price",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/categories/{{category_id}}/average_price/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "categories", "{{category_id}}", "average_price", ""]
+							"path": ["api", "v1", "customers", "profile", ""]
 						}
 					}
 				}
@@ -205,13 +125,13 @@
 			"name": "Products",
 			"item": [
 				{
-					"name": "List Products",
+					"name": "Get All Products",
 					"request": {
 						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{customer_token}}"
 							}
 						],
 						"url": {
@@ -222,79 +142,65 @@
 					}
 				},
 				{
-					"name": "Create Product",
+					"name": "Get Product by ID",
 					"request": {
-						"method": "POST",
+						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"value": "Token {{customer_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"iPhone 15 Pro\",\n    \"description\": \"Latest iPhone with advanced features\",\n    \"price\": \"999.99\",\n    \"category\": 1,\n    \"stock_quantity\": 50,\n    \"status\": \"active\",\n    \"is_featured\": true\n}"
-						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/products/",
+							"raw": "{{base_url}}/api/v1/products/{{product_id}}/",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "products", ""]
+							"path": ["api", "v1", "products", "{{product_id}}", ""]
 						}
 					}
 				},
 				{
-					"name": "Upload Product with Image",
+					"name": "Get Products by Category",
 					"request": {
-						"method": "POST",
+						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{customer_token}}"
 							}
 						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "name",
-									"value": "MacBook Pro",
-									"type": "text"
-								},
-								{
-									"key": "description",
-									"value": "Professional laptop for developers",
-									"type": "text"
-								},
-								{
-									"key": "price",
-									"value": "1999.99",
-									"type": "text"
-								},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/?category={{category_slug}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", ""],
+							"query": [
 								{
 									"key": "category",
-									"value": "1",
-									"type": "text"
-								},
-								{
-									"key": "stock_quantity",
-									"value": "25",
-									"type": "text"
-								},
-								{
-									"key": "image",
-									"type": "file",
-									"src": []
+									"value": "{{category_slug}}"
 								}
 							]
-						},
+						}
+					}
+				},
+				{
+					"name": "Search Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{customer_token}}"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/api/v1/products/upload/",
+							"raw": "{{base_url}}/api/v1/products/?search={{search_term}}",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "products", "upload", ""]
+							"path": ["api", "v1", "products", ""],
+							"query": [
+								{
+									"key": "search",
+									"value": "{{search_term}}"
+								}
+							]
 						}
 					}
 				},
@@ -305,7 +211,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{customer_token}}"
 							}
 						],
 						"url": {
@@ -322,13 +228,103 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{customer_token}}"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/v1/products/low_stock/",
+							"raw": "{{base_url}}/api/v1/products/low-stock/",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "products", "low_stock", ""]
+							"path": ["api", "v1", "products", "low-stock", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{customer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Category by Slug",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{customer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/{{category_slug}}/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", "{{category_slug}}", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Average Product Price by Category",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{customer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/{{category_slug}}/average-price/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", "{{category_slug}}", "average-price", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Average Prices for All Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{customer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/average-price-per-category/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", "average-price-per-category", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Category Tree",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{customer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/tree/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", "tree", ""]
 						}
 					}
 				}
@@ -338,30 +334,13 @@
 			"name": "Orders",
 			"item": [
 				{
-					"name": "List My Orders",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/orders/my_orders/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "orders", "my_orders", ""]
-						}
-					}
-				},
-				{
 					"name": "Create Order",
 					"request": {
 						"method": "POST",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{customer_token}}"
 							},
 							{
 								"key": "Content-Type",
@@ -370,7 +349,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"shipping_address\": \"123 Main St, Nairobi, Kenya\",\n    \"billing_address\": \"123 Main St, Nairobi, Kenya\",\n    \"phone_number\": \"+254712345678\",\n    \"payment_method\": \"mpesa\",\n    \"items\": [\n        {\n            \"product_id\": 1,\n            \"quantity\": 2\n        },\n        {\n            \"product_id\": 2,\n            \"quantity\": 1\n        }\n    ]\n}"
+							"raw": "{\n    \"shipping_address\": \"123 Customer St, Nairobi, Kenya\",\n    \"items\": [\n        {\n            \"product_id\": \"{{product_id}}\",\n            \"quantity\": 2\n        },\n        {\n            \"product_id\": \"{{product_id_2}}\",\n            \"quantity\": 1\n        }\n    ]\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/orders/",
@@ -380,13 +359,30 @@
 					}
 				},
 				{
-					"name": "Get Order Details",
+					"name": "Get Customer Orders",
 					"request": {
 						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{customer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/orders/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "orders", ""]
+						}
+					}
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{customer_token}}"
 							}
 						],
 						"url": {
@@ -395,138 +391,115 @@
 							"path": ["api", "v1", "orders", "{{order_id}}", ""]
 						}
 					}
-				},
+				}
+			]
+		},
+		{
+			"name": "Admin Dashboard",
+			"item": [
 				{
-					"name": "Update Order Status (Admin)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"status\": \"confirmed\",\n    \"notes\": \"Order confirmed and ready for processing\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/orders/{{order_id}}/update_status/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "orders", "{{order_id}}", "update_status", ""]
-						}
-					}
-				},
-				{
-					"name": "Cancel Order",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/orders/{{order_id}}/cancel/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "orders", "{{order_id}}", "cancel", ""]
-						}
-					}
-				},
-				{
-					"name": "Get Pending Orders (Admin)",
+					"name": "Get Dashboard Stats",
 					"request": {
 						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{admin_token}}"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/v1/orders/pending/",
+							"raw": "{{base_url}}/api/v1/admin/dashboard/",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "orders", "pending", ""]
-						}
-					}
-				},
-				{
-					"name": "Get Order Statistics (Admin)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/orders/statistics/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "orders", "statistics", ""]
+							"path": ["api", "v1", "admin", "dashboard", ""]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "Customer Profile",
+			"name": "Admin - Customer Management",
 			"item": [
 				{
-					"name": "Get My Profile",
+					"name": "Get All Customers",
 					"request": {
 						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{admin_token}}"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/v1/customers/profile/",
+							"raw": "{{base_url}}/api/v1/admin/customers/",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customers", "profile", ""]
+							"path": ["api", "v1", "admin", "customers", ""]
 						}
 					}
 				},
 				{
-					"name": "Update Profile",
+					"name": "Get Customer Details",
 					"request": {
-						"method": "PUT",
+						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"value": "Token {{admin_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"first_name\": \"John Updated\",\n    \"last_name\": \"Doe Updated\",\n    \"phone_number\": \"+254712345679\",\n    \"address\": \"456 New St, Nairobi\"\n}"
-						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/customers/update_profile/",
+							"raw": "{{base_url}}/api/v1/admin/customers/{{customer_id}}/",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customers", "update_profile", ""]
+							"path": ["api", "v1", "admin", "customers", "{{customer_id}}", ""]
 						}
 					}
 				},
 				{
-					"name": "Change Password",
+					"name": "Verify Customer",
 					"request": {
 						"method": "POST",
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Token {{auth_token}}"
+								"value": "Token {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/customers/{{customer_id}}/verify/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "customers", "{{customer_id}}", "verify", ""]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/customers/{{customer_id}}/deactivate/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "customers", "{{customer_id}}", "deactivate", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin - System Management",
+			"item": [
+				{
+					"name": "Create Admin User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{admin_token}}"
 							},
 							{
 								"key": "Content-Type",
@@ -535,12 +508,118 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"old_password\": \"securepassword123\",\n    \"new_password\": \"newsecurepassword456\"\n}"
+							"raw": "{\n    \"email\": \"newadmin@example.com\",\n    \"password\": \"admin123456\",\n    \"first_name\": \"New\",\n    \"last_name\": \"Admin\",\n    \"role\": \"admin\",\n    \"permissions\": [\"products\", \"orders\"]\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/customers/change_password/",
+							"raw": "{{base_url}}/api/v1/admin/create_admin/",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "customers", "change_password", ""]
+							"path": ["api", "v1", "admin", "create_admin", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Admin Permissions",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"permissions\": [\"products\", \"orders\", \"customers\", \"reports\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/{{admin_id}}/update-permissions/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "{{admin_id}}", "update-permissions", ""]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/{{admin_id}}/deactivate/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "{{admin_id}}", "deactivate", ""]
+						}
+					}
+				},
+				{
+					"name": "Send System Alert",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{admin_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"alert_type\": \"maintenance\",\n    \"message\": \"System will be under maintenance from 2-4 AM\",\n    \"details\": {\n        \"duration\": \"2 hours\",\n        \"affected_services\": [\"orders\", \"payments\"]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/send-system-alert/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "send-system-alert", ""]
+						}
+					}
+				},
+				{
+					"name": "Send Daily Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/send-daily-report/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "send-daily-report", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Get Customer Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{customer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "notifications", ""]
 						}
 					}
 				}
@@ -554,18 +633,48 @@
 			"type": "string"
 		},
 		{
-			"key": "auth_token",
-			"value": "your_auth_token_here",
+			"key": "customer_token",
+			"value": "your_customer_token_here",
 			"type": "string"
 		},
 		{
-			"key": "category_id",
-			"value": "1",
+			"key": "admin_token",
+			"value": "your_admin_token_here",
+			"type": "string"
+		},
+		{
+			"key": "product_id",
+			"value": "product_uuid_here",
+			"type": "string"
+		},
+		{
+			"key": "product_id_2",
+			"value": "product_uuid_here",
 			"type": "string"
 		},
 		{
 			"key": "order_id",
-			"value": "1",
+			"value": "order_id_here",
+			"type": "string"
+		},
+		{
+			"key": "customer_id",
+			"value": "customer_id_here",
+			"type": "string"
+		},
+		{
+			"key": "category_slug",
+			"value": "electronics",
+			"type": "string"
+		},
+		{
+			"key": "search_term",
+			"value": "iphone",
+			"type": "string"
+		},
+		{
+			"key": "admin_id",
+			"value": "admin_id_here",
 			"type": "string"
 		}
 	]

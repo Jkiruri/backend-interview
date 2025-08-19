@@ -15,7 +15,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'orderflow.settings')
 django.setup()
 
 from django.contrib.auth import get_user_model
-from customers.models import Customer
+from customers.models import Customer, Admin
 from products.models import Category, Product
 from orders.models import Order, OrderItem
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -33,7 +33,10 @@ def create_customers():
             'last_name': 'Doe',
             'phone_number': '+254700123456',
             'address': '123 Main St, Nairobi, Kenya',
-            'date_of_birth': datetime(1990, 5, 15).date(),
+            'city': 'Nairobi',
+            'state': 'Nairobi',
+            'country': 'Kenya',
+            'postal_code': '00100',
             'is_verified': True
         },
         {
@@ -42,7 +45,10 @@ def create_customers():
             'last_name': 'Smith',
             'phone_number': '+254700123457',
             'address': '456 Oak Ave, Mombasa, Kenya',
-            'date_of_birth': datetime(1988, 8, 22).date(),
+            'city': 'Mombasa',
+            'state': 'Mombasa',
+            'country': 'Kenya',
+            'postal_code': '80100',
             'is_verified': True
         },
         {
@@ -51,7 +57,10 @@ def create_customers():
             'last_name': 'Wilson',
             'phone_number': '+254700123458',
             'address': '789 Pine Rd, Kisumu, Kenya',
-            'date_of_birth': datetime(1992, 3, 10).date(),
+            'city': 'Kisumu',
+            'state': 'Kisumu',
+            'country': 'Kenya',
+            'postal_code': '40100',
             'is_verified': False
         },
         {
@@ -60,7 +69,10 @@ def create_customers():
             'last_name': 'Jones',
             'phone_number': '+254700123459',
             'address': '321 Elm St, Nakuru, Kenya',
-            'date_of_birth': datetime(1985, 12, 5).date(),
+            'city': 'Nakuru',
+            'state': 'Nakuru',
+            'country': 'Kenya',
+            'postal_code': '20100',
             'is_verified': True
         },
         {
@@ -69,7 +81,10 @@ def create_customers():
             'last_name': 'Brown',
             'phone_number': '+254700123460',
             'address': '654 Maple Dr, Eldoret, Kenya',
-            'date_of_birth': datetime(1995, 7, 18).date(),
+            'city': 'Eldoret',
+            'state': 'Uasin Gishu',
+            'country': 'Kenya',
+            'postal_code': '30100',
             'is_verified': True
         }
     ]
@@ -90,6 +105,64 @@ def create_customers():
             print(f"⏭️  Customer already exists: {customer.full_name}")
     
     return customers
+
+def create_admin():
+    """Create admin user"""
+    print("\nCreating admin user...")
+    
+    admin_data = {
+        'email': 'admin@jameskiruri.co.ke',
+        'first_name': 'Admin',
+        'last_name': 'User',
+        'phone_number': '+254747210136',
+        'address': 'Admin Office, Nairobi, Kenya',
+        'city': 'Nairobi',
+        'state': 'Nairobi',
+        'country': 'Kenya',
+        'postal_code': '00100',
+        'is_verified': True,
+        'is_staff': True,
+        'is_superuser': True
+    }
+    
+    try:
+        admin_user, created = Customer.objects.get_or_create(
+            email=admin_data['email'],
+            defaults=admin_data
+        )
+        
+        if created:
+            admin_user.set_password('admin123456')
+            admin_user.save()
+            print(f"✅ Created admin user: {admin_user.email}")
+        else:
+            # Update existing admin user
+            admin_user.set_password('admin123456')
+            admin_user.is_staff = True
+            admin_user.is_superuser = True
+            admin_user.save()
+            print(f"⏭️  Updated existing admin user: {admin_user.email}")
+        
+        # Create Admin profile
+        admin_profile, profile_created = Admin.objects.get_or_create(
+            user=admin_user,
+            defaults={
+                'role': 'admin',
+                'permissions': ['all'],
+                'is_active': True
+            }
+        )
+        
+        if profile_created:
+            print(f"✅ Created admin profile for: {admin_user.email}")
+        else:
+            print(f"⏭️  Admin profile already exists for: {admin_user.email}")
+        
+        return admin_user
+        
+    except Exception as e:
+        print(f"❌ Error creating admin: {e}")
+        return None
 
 def create_categories():
     """Create hierarchical product categories"""
@@ -463,6 +536,9 @@ def main():
         # Create customers
         customers = create_customers()
         
+        # Create admin
+        admin_user = create_admin()
+        
         # Create categories
         categories = create_categories()
         
@@ -484,6 +560,10 @@ def main():
         print("\n🔑 Test credentials:")
         for customer in customers:
             print(f"   - {customer.email} / password123")
+        
+        if admin_user:
+            print(f"\n👑 Admin credentials:")
+            print(f"   - {admin_user.email} / admin123456")
         
     except Exception as e:
         print(f"❌ Error during seeding: {str(e)}")

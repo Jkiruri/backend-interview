@@ -1,6 +1,33 @@
 version: '3.8'
 
 services:
+  # Django Web Application
+  web:
+    build: .
+    container_name: orderflow_web
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - DJANGO_SETTINGS_MODULE=orderflow.settings
+      - DATABASE_URL=postgresql://orderflow_user:orderflow_password@postgres:5432/orderflow
+      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - orderflow_network
+    restart: unless-stopped
+
   # PostgreSQL Database
   postgres:
     image: postgres:15
@@ -172,6 +199,8 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
+  static_volume:
+  media_volume:
 
 networks:
   orderflow_network:
