@@ -1,12 +1,13 @@
 from .sms_service import SMSService
 from .email_service import EmailService
 from .models import Notification
+from .tasks import send_sms_notification, send_email_notification, send_order_confirmation, send_order_status_update
 import logging
 
 logger = logging.getLogger(__name__)
 
 class NotificationManager:
-    """Manages both SMS and email notifications"""
+    """Manages both SMS and email notifications using Celery tasks"""
     
     def __init__(self):
         self.sms_service = SMSService()
@@ -14,7 +15,7 @@ class NotificationManager:
     
     def send_order_confirmation(self, order, send_sms=True, send_email=True):
         """
-        Send order confirmation notifications
+        Send order confirmation notifications asynchronously using Celery
         
         Args:
             order: Order object
@@ -22,40 +23,35 @@ class NotificationManager:
             send_email (bool): Whether to send email
             
         Returns:
-            dict: Results from both services
+            dict: Results with task IDs
         """
-        results = {
-            'sms': None,
-            'email': None,
-            'success': False
-        }
-        
         try:
-            # Send SMS if enabled and customer has phone number
-            if send_sms and order.customer.phone_number:
-                results['sms'] = self.sms_service.send_order_confirmation(order)
-                logger.info(f"SMS order confirmation sent for order {order.order_number}")
-            
-            # Send email if enabled
-            if send_email:
-                results['email'] = self.email_service.send_order_confirmation(order)
-                logger.info(f"Email order confirmation sent for order {order.order_number}")
-            
-            # Consider successful if at least one notification was sent
-            results['success'] = (
-                (results['sms'] and results['sms'].get('success', False)) or
-                (results['email'] and results['email'].get('success', False))
+            # Queue the task asynchronously
+            task_result = send_order_confirmation.delay(
+                str(order.id), 
+                send_sms=send_sms, 
+                send_email=send_email
             )
             
+            logger.info(f"Order confirmation task queued for order {order.order_number} - Task ID: {task_result.id}")
+            
+            return {
+                'success': True,
+                'task_id': task_result.id,
+                'status': 'queued',
+                'message': 'Order confirmation notifications queued successfully'
+            }
+            
         except Exception as e:
-            logger.error(f"Failed to send order confirmation for order {order.order_number}: {e}")
-            results['error'] = str(e)
-        
-        return results
+            logger.error(f"Failed to queue order confirmation for order {order.order_number}: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
     
     def send_order_status_update(self, order, old_status, new_status, send_sms=True, send_email=True):
         """
-        Send order status update notifications
+        Send order status update notifications asynchronously using Celery
         
         Args:
             order: Order object
@@ -65,36 +61,33 @@ class NotificationManager:
             send_email (bool): Whether to send email
             
         Returns:
-            dict: Results from both services
+            dict: Results with task IDs
         """
-        results = {
-            'sms': None,
-            'email': None,
-            'success': False
-        }
-        
         try:
-            # Send SMS if enabled and customer has phone number
-            if send_sms and order.customer.phone_number:
-                results['sms'] = self.sms_service.send_order_status_update(order, old_status, new_status)
-                logger.info(f"SMS status update sent for order {order.order_number}")
-            
-            # Send email if enabled
-            if send_email:
-                results['email'] = self.email_service.send_order_status_update(order, old_status, new_status)
-                logger.info(f"Email status update sent for order {order.order_number}")
-            
-            # Consider successful if at least one notification was sent
-            results['success'] = (
-                (results['sms'] and results['sms'].get('success', False)) or
-                (results['email'] and results['email'].get('success', False))
+            # Queue the task asynchronously
+            task_result = send_order_status_update.delay(
+                str(order.id), 
+                old_status, 
+                new_status, 
+                send_sms=send_sms, 
+                send_email=send_email
             )
             
+            logger.info(f"Order status update task queued for order {order.order_number} - Task ID: {task_result.id}")
+            
+            return {
+                'success': True,
+                'task_id': task_result.id,
+                'status': 'queued',
+                'message': 'Order status update notifications queued successfully'
+            }
+            
         except Exception as e:
-            logger.error(f"Failed to send status update for order {order.order_number}: {e}")
-            results['error'] = str(e)
-        
-        return results
+            logger.error(f"Failed to queue status update for order {order.order_number}: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
     
     def send_delivery_notification(self, order, send_sms=True, send_email=True):
         """

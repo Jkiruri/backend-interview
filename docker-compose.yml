@@ -1,0 +1,178 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: orderflow_postgres
+    environment:
+      POSTGRES_DB: orderflow
+      POSTGRES_USER: orderflow_user
+      POSTGRES_PASSWORD: orderflow_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - orderflow_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderflow_user -d orderflow"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for Celery result backend
+  redis:
+    image: redis:7-alpine
+    container_name: orderflow_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - orderflow_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # RabbitMQ for Celery broker
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: orderflow_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: orderflow_user
+      RABBITMQ_DEFAULT_PASS: orderflow_password
+      RABBITMQ_DEFAULT_VHOST: orderflow
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - orderflow_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Celery Worker for SMS notifications
+  celery_sms_worker:
+    build: .
+    container_name: orderflow_celery_sms
+    command: celery -A orderflow worker -Q sms -l info --concurrency=2
+    environment:
+      - DJANGO_SETTINGS_MODULE=orderflow.settings
+      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - orderflow_network
+    restart: unless-stopped
+
+  # Celery Worker for Email notifications
+  celery_email_worker:
+    build: .
+    container_name: orderflow_celery_email
+    command: celery -A orderflow worker -Q email -l info --concurrency=3
+    environment:
+      - DJANGO_SETTINGS_MODULE=orderflow.settings
+      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - orderflow_network
+    restart: unless-stopped
+
+  # Celery Worker for general notifications
+  celery_notifications_worker:
+    build: .
+    container_name: orderflow_celery_notifications
+    command: celery -A orderflow worker -Q notifications -l info --concurrency=2
+    environment:
+      - DJANGO_SETTINGS_MODULE=orderflow.settings
+      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - orderflow_network
+    restart: unless-stopped
+
+  # Celery Beat for scheduled tasks
+  celery_beat:
+    build: .
+    container_name: orderflow_celery_beat
+    command: celery -A orderflow beat -l info
+    environment:
+      - DJANGO_SETTINGS_MODULE=orderflow.settings
+      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - orderflow_network
+    restart: unless-stopped
+
+  # Flower for Celery monitoring
+  flower:
+    build: .
+    container_name: orderflow_flower
+    command: celery -A orderflow flower --port=5555
+    environment:
+      - DJANGO_SETTINGS_MODULE=orderflow.settings
+      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    volumes:
+      - .:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - orderflow_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  orderflow_network:
+    driver: bridge

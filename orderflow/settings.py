@@ -189,12 +189,24 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 # Celery Configuration
-CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='amqp://guest:guest@localhost:5672//')
 CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+
+# Celery Beat Schedule (for periodic tasks)
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-failed-notifications': {
+        'task': 'notifications.tasks.cleanup_failed_notifications',
+        'schedule': 3600.0,  # Every hour
+    },
+    'retry-failed-notifications': {
+        'task': 'notifications.tasks.retry_failed_notifications',
+        'schedule': 300.0,  # Every 5 minutes
+    },
+}
 
 # Media files
 MEDIA_URL = '/media/'
