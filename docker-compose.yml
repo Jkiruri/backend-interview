@@ -71,9 +71,9 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: orderflow_rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: ${DB_USER}
-      RABBITMQ_DEFAULT_PASS: ${DB_PASSWORD}
-      RABBITMQ_DEFAULT_VHOST: ${DB_NAME}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
     ports:
       - "5674:5672"   # AMQP port
       - "15674:15672" # Management UI port
