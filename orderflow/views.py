@@ -13,7 +13,22 @@ def landing_page(request):
     """
     Landing page for the OrderFlow API
     """
-    return render(request, 'landing.html')
+    try:
+        return render(request, 'landing.html')
+    except:
+        # Fallback to JSON response if template is not available
+        return JsonResponse({
+            "name": "OrderFlow API",
+            "version": "v1.0.0",
+            "description": "E-commerce Order Management System API",
+            "message": "Welcome to OrderFlow API!",
+            "documentation": {
+                "swagger": "/swagger/",
+                "redoc": "/redoc/",
+                "api_docs": "/api-docs/"
+            },
+            "status": "active"
+        })
 
 
 @api_view(['GET'])

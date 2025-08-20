@@ -77,7 +77,7 @@ ROOT_URLCONF = 'orderflow.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'orderflow' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
