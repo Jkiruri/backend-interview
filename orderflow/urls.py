@@ -29,6 +29,7 @@ from django.views.decorators.csrf import csrf_exempt
 from customers.views import (
     CustomerRegistrationView, CustomerLoginView, CustomerLogoutView, CustomerViewSet
 )
+from .views import landing_page, health_check, api_info
 from customers.admin_views import AdminViewSet, CustomerAdminViewSet
 from customers.oidc_views import CustomerOIDCLoginView, oidc_token_login, oidc_user_info
 from customers.google_oauth import google_login, google_token_login, google_user_info
@@ -65,6 +66,11 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    # Landing page and health check
+    path('', landing_page, name='landing-page'),
+    path('api/', api_info, name='api-info'),
+    path('health/', health_check, name='health-check'),
+    
     path('admin/', admin.site.urls),
     
     # OIDC URLs
