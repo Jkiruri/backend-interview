@@ -266,7 +266,7 @@ class Command(BaseCommand):
                     password=customer_data['password'],
                     first_name=customer_data['first_name'],
                     last_name=customer_data['last_name'],
-                    phone=customer_data['phone']
+                    phone_number=customer_data['phone']
                 )
                 self.stdout.write(f'Created customer: {customer.email}')
             else:
