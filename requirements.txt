@@ -9,7 +9,7 @@ drf-yasg==1.21.7
 mozilla-django-oidc==2.0.0
 django-allauth==0.60.1
 africastalking==1.2.8
-model-utils==4.3.1
+django-model-utils==4.3.1
 
 # Celery for task queues
 celery==5.3.4
