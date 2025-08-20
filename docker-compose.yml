@@ -168,6 +168,33 @@ services:
       - orderflow_network
     restart: unless-stopped
 
+  # Celery Worker for default queue (catches any unassigned tasks)
+  celery_default_worker:
+    build: .
+    container_name: orderflow_celery_default
+    command: celery -A orderflow worker -Q celery,default -l info --concurrency=2
+    environment:
+      - DJANGO_SETTINGS_MODULE=orderflow.settings
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    volumes:
+      - .:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - orderflow_network
+    restart: unless-stopped
+
   # Celery Beat for scheduled tasks
   celery_beat:
     build: .
