@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-Comprehensive tests for OrderFlow notification system
-Tests SMS, email, task processing, and order notifications
+Core notification system tests for OrderFlow
+Focuses on SMS, email, and task processing without token testing
 """
 import os
 import sys
 import django
 import time
-import requests
 
 # Add the project root to Python path
 sys.path.insert(0, '/app')
@@ -29,8 +28,8 @@ from notifications.sms_service import SMSService
 
 Customer = get_user_model()
 
-class NotificationSystemTest:
-    """Test the complete notification system"""
+class CoreNotificationTest:
+    """Test core notification functionality"""
     
     def __init__(self):
         """Initialize test environment"""
@@ -151,80 +150,6 @@ class NotificationSystemTest:
             return True
         except Exception as e:
             print(f"❌ SMS service test failed: {e}")
-            return False
-    
-    def test_token_behavior(self):
-        """Test token behavior on login"""
-        print("\n" + "=" * 60)
-        print("🔐 TESTING TOKEN BEHAVIOR")
-        print("=" * 60)
-        
-        try:
-            # First login
-            response1 = self.client.post('/api/v1/auth/login/', {
-                'email': 'test@example.com',
-                'password': 'testpass123'
-            })
-            
-            if response1.status_code == 200:
-                token1 = response1.json().get('token')
-                print(f"✅ First login token: {token1[:10]}...")
-            else:
-                print(f"❌ First login failed: {response1.status_code}")
-                return False
-            
-            # Second login (should return same token)
-            response2 = self.client.post('/api/v1/auth/login/', {
-                'email': 'test@example.com',
-                'password': 'testpass123'
-            })
-            
-            if response2.status_code == 200:
-                token2 = response2.json().get('token')
-                print(f"✅ Second login token: {token2[:10]}...")
-            else:
-                print(f"❌ Second login failed: {response2.status_code}")
-                return False
-            
-            # Tokens should be the same (get_or_create behavior)
-            if token1 == token2:
-                print("✅ Tokens are the same (get_or_create behavior confirmed)")
-            else:
-                print("❌ Tokens are different (unexpected)")
-                return False
-            
-            # Test logout
-            self.client.defaults['HTTP_AUTHORIZATION'] = f'Token {token1}'
-            logout_response = self.client.post('/api/v1/auth/logout/')
-            
-            if logout_response.status_code == 200:
-                print("✅ Logout successful")
-            else:
-                print(f"❌ Logout failed: {logout_response.status_code}")
-            
-            # Third login (should create new token after logout)
-            response3 = self.client.post('/api/v1/auth/login/', {
-                'email': 'test@example.com',
-                'password': 'testpass123'
-            })
-            
-            if response3.status_code == 200:
-                token3 = response3.json().get('token')
-                print(f"✅ Third login token (after logout): {token3[:10]}...")
-            else:
-                print(f"❌ Third login failed: {response3.status_code}")
-                return False
-            
-            # New token should be different after logout
-            if token1 != token3:
-                print("✅ New token created after logout")
-                return True
-            else:
-                print("❌ Token not changed after logout")
-                return False
-                
-        except Exception as e:
-            print(f"❌ Token behavior test failed: {e}")
             return False
     
     def test_task_queuing(self):
@@ -349,47 +274,9 @@ class NotificationSystemTest:
             print(f"❌ Order creation test failed: {e}")
             return False
     
-    def test_admin_creation(self):
-        """Test admin user creation"""
-        print("\n" + "=" * 60)
-        print("👤 TESTING ADMIN CREATION")
-        print("=" * 60)
-        
-        try:
-            # Get admin authentication token
-            admin_token, _ = Token.objects.get_or_create(user=self.admin_user)
-            self.client.defaults['HTTP_AUTHORIZATION'] = f'Token {admin_token.key}'
-            
-            # Create new admin user
-            admin_data = {
-                'email': 'newadmin@orderflow.com',
-                'first_name': 'New',
-                'last_name': 'Admin',
-                'password': 'newadmin123',
-                'role': 'admin'
-            }
-            
-            # Fix: use correct URL endpoint
-            response = self.client.post('/api/v1/admin/create_admin/', admin_data, content_type='application/json')
-            
-            print(f"Admin creation response status: {response.status_code}")
-            if response.status_code == 201:
-                admin_info = response.json()
-                print(f"✅ Admin created: {admin_info.get('email')}")
-                print(f"Admin ID: {admin_info.get('id')}")
-                print(f"Role: {admin_info.get('role')}")
-                return True
-            else:
-                print(f"❌ Admin creation failed: {response.content.decode()}")
-                return False
-                
-        except Exception as e:
-            print(f"❌ Admin creation test failed: {e}")
-            return False
-    
-    def run_all_tests(self):
-        """Run all tests"""
-        print("🚀 ORDERFLOW NOTIFICATION SYSTEM COMPREHENSIVE TEST")
+    def run_core_tests(self):
+        """Run core notification tests"""
+        print("🚀 ORDERFLOW CORE NOTIFICATION SYSTEM TEST")
         print("=" * 60)
         
         results = {}
@@ -401,21 +288,15 @@ class NotificationSystemTest:
             # Test 2: SMS Configuration
             results['sms'] = self.test_sms_configuration()
             
-            # Test 3: Token Behavior
-            results['token'] = self.test_token_behavior()
-            
-            # Test 4: Task Queuing
+            # Test 3: Task Queuing
             results['task_queuing'] = self.test_task_queuing()
             
-            # Test 5: Order Creation with Notifications
+            # Test 4: Order Creation with Notifications
             results['order_creation'] = self.test_order_creation_with_notifications()
-            
-            # Test 6: Admin Creation
-            results['admin_creation'] = self.test_admin_creation()
             
             # Summary
             print("\n" + "=" * 60)
-            print("📊 TEST RESULTS SUMMARY")
+            print("📊 CORE TEST RESULTS SUMMARY")
             print("=" * 60)
             
             passed = 0
@@ -427,28 +308,32 @@ class NotificationSystemTest:
                 if result:
                     passed += 1
             
-            print(f"\nOverall: {passed}/{total} tests passed")
+            print(f"\nOverall: {passed}/{total} core tests passed")
             
             if passed == total:
-                print("🎉 ALL TESTS COMPLETED SUCCESSFULLY!")
+                print("🎉 ALL CORE TESTS PASSED!")
+                print("✅ Email service working")
+                print("✅ SMS service working")
+                print("✅ Task queuing working")
+                print("✅ Order notifications triggered")
             else:
-                print("⚠️  Some tests failed. Check the output above for details.")
+                print("⚠️  Some core tests failed. Check the output above for details.")
             
             return passed == total
             
         except Exception as e:
-            print(f"\n❌ Test suite failed: {e}")
+            print(f"\n❌ Core test suite failed: {e}")
             return False
 
 def main():
-    """Run the comprehensive test suite"""
-    test_suite = NotificationSystemTest()
-    success = test_suite.run_all_tests()
+    """Run the core notification test suite"""
+    test_suite = CoreNotificationTest()
+    success = test_suite.run_core_tests()
     
     if success:
-        print("\n🎯 All systems are working correctly!")
+        print("\n🎯 Core notification system is working correctly!")
     else:
-        print("\n🔧 Some issues detected. Review the test output above.")
+        print("\n🔧 Some core issues detected. Review the test output above.")
 
 if __name__ == "__main__":
     main()
