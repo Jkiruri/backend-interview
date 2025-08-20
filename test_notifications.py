@@ -78,7 +78,7 @@ def test_email_service():
     try:
         email_service = EmailService()
         result = email_service.send_email(
-            to_email='test@example.com',
+            to_email='jamesnjunge45@gmail.com',
             subject='Test Email Service',
             message='This is a test email from the EmailService class.'
         )
