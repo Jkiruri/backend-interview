@@ -33,6 +33,10 @@ app.conf.update(
         'notifications.tasks.send_email_notification': {'queue': 'email'},
         'notifications.tasks.send_order_confirmation': {'queue': 'notifications'},
         'notifications.tasks.send_order_status_update': {'queue': 'notifications'},
+        'notifications.tasks.send_admin_order_notification': {'queue': 'notifications'},
+        'notifications.tasks.send_delivery_notification': {'queue': 'notifications'},
+        'notifications.tasks.send_bulk_email_notifications': {'queue': 'email'},
+        'notifications.tasks.send_bulk_sms_notifications': {'queue': 'sms'},
     },
     
     # Queue definitions
