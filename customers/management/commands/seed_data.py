@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from products.models import Category, Product
-from customers.models import Customer
+from customers.models import Customer, Admin
 import logging
 
 logger = logging.getLogger(__name__)
