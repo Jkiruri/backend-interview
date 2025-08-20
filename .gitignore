@@ -73,3 +73,5 @@ celerybeat.pid
 
 # Kubernetes
 *.kubeconfig
+VPS_DEPLOYMENT_SUMMARY.md
+DEPLOY.md

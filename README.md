@@ -57,13 +57,13 @@ cp env.example .env
 ### 5. Database Setup
 ```bash
 # Create PostgreSQL database
-python setup_db.py
+python scripts/setup_db.py
 
 # Run migrations
 python manage.py migrate
 
-# Create superuser
-python manage.py createsuperuser
+# Create admin user (optional)
+python seeder/create_admin_final.py
 ```
 
 ### 6. Run the Development Server
@@ -81,8 +81,9 @@ backend-interview/
 ├── customers/              # Customer management app
 ├── products/               # Product and category management
 ├── orders/                 # Order processing app
+├── seeder/                 # Database seeding and admin creation
+├── scripts/                # Utility scripts
 ├── requirements.txt        # Python dependencies
-├── setup_db.py            # Database setup script
 ├── env.example            # Environment variables template
 └── README.md              # This file
 ```
@@ -151,6 +152,34 @@ backend-interview/
 - `GET /api/v1/customers/profile/` - Get user profile
 - `PUT /api/v1/customers/update_profile/` - Update profile
 - `POST /api/v1/customers/change_password/` - Change password
+
+## Project Organization
+
+### Scripts Directory (`scripts/`)
+Contains utility scripts for project maintenance:
+- `check_celery_status.py` - Monitor Celery workers and tasks
+- `set_admin_password.py` - Set or update admin user credentials
+- `setup_db.py` - Database initialization and setup
+
+### Seeder Directory (`seeder/`)
+Contains database seeding and admin creation scripts:
+- `seeders.py` - Populate database with test data (customers, products, orders)
+- `create_admin_final.py` - Create admin user with comprehensive testing
+
+### Usage Examples
+```bash
+# Check Celery status
+python scripts/check_celery_status.py
+
+# Set admin password
+python scripts/set_admin_password.py
+
+# Create admin user with full functionality
+python seeder/create_admin_final.py
+
+# Populate database with test data
+python seeder/seeders.py
+```
 
 ## Testing
 
