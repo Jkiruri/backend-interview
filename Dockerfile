@@ -23,10 +23,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . /app/
 
+# Create logs directory if it doesn't exist
+RUN mkdir -p /app/logs
+
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser
 RUN chown -R appuser:appuser /app
 RUN chmod -R 755 /app/logs
+RUN chmod 666 /app/logs/*.log || true
 USER appuser
 
 # Expose port
