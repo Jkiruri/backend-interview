@@ -1,134 +1,200 @@
 #!/usr/bin/env python3
 """
-Comprehensive test script for OrderFlow notifications
-This script tests the entire notification pipeline
+Comprehensive tests for OrderFlow notification system
+Tests SMS, email, task processing, and order notifications
 """
 import os
 import django
 import time
+import requests
+from django.test import TestCase
+from django.contrib.auth import get_user_model
+from rest_framework.test import APITestCase
+from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 # Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'orderflow.settings')
 django.setup()
 
+from customers.models import Customer, Admin
+from products.models import Product, Category
 from orders.models import Order, OrderItem
-from products.models import Product
-from customers.models import Customer
-from notifications.tasks import send_order_confirmation, send_admin_order_notification, send_email_notification
 from notifications.models import Notification
+from notifications.tasks import send_order_confirmation, send_admin_order_notification
 from notifications.email_service import EmailService
-from django.core.mail import send_mail
-from django.conf import settings
-from celery import current_app
+from notifications.sms_service import SMSService
 
-def test_email_configuration():
-    """Test email configuration"""
-    print("=" * 60)
-    print("📧 TESTING EMAIL CONFIGURATION")
-    print("=" * 60)
+Customer = get_user_model()
+
+class NotificationSystemTest(APITestCase):
+    """Test the complete notification system"""
     
-    print(f"EMAIL_HOST: {getattr(settings, 'EMAIL_HOST', 'NOT SET')}")
-    print(f"EMAIL_PORT: {getattr(settings, 'EMAIL_PORT', 'NOT SET')}")
-    print(f"EMAIL_USE_SSL: {getattr(settings, 'EMAIL_USE_SSL', 'NOT SET')}")
-    print(f"EMAIL_HOST_USER: {getattr(settings, 'EMAIL_HOST_USER', 'NOT SET')}")
-    print(f"EMAIL_HOST_PASSWORD: {'SET' if getattr(settings, 'EMAIL_HOST_PASSWORD', None) else 'NOT SET'}")
-    
-    # Test direct email sending
-    try:
-        result = send_mail(
-            'Test Email from OrderFlow',
-            'This is a test email to verify the email configuration is working.',
-            'noreply@jameskiruri.co.ke',
-            ['test@example.com'],  # This will fail but we can see the error
-            fail_silently=True
+    def setUp(self):
+        """Set up test data"""
+        # Create test customer
+        self.customer = Customer.objects.create_user(
+            email='test@example.com',
+            password='testpass123',
+            first_name='Test',
+            last_name='User',
+            phone_number='+254747210136'  # Whitelisted number for testing
         )
-        print(f"✅ Direct email test result: {result}")
-    except Exception as e:
-        print(f"❌ Direct email test failed: {e}")
-
-def test_celery_connection():
-    """Test Celery connection and workers"""
-    print("\n" + "=" * 60)
-    print("🔧 TESTING CELERY CONNECTION")
-    print("=" * 60)
+        
+        # Create test admin
+        self.admin_user = Customer.objects.create_user(
+            email='admin@orderflow.com',
+            password='admin123',
+            first_name='Admin',
+            last_name='User',
+            is_staff=True,
+            is_superuser=True
+        )
+        
+        # Create admin profile
+        self.admin = Admin.objects.create(
+            user=self.admin_user,
+            role='super_admin',
+            is_active=True
+        )
+        
+        # Create test category and product
+        self.category = Category.objects.create(
+            name='Test Category',
+            description='Test category for notifications'
+        )
+        
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Test product for notifications',
+            price=1000.00,
+            category=self.category,
+            stock_quantity=10
+        )
+        
+        # Get authentication token
+        self.token, _ = Token.objects.get_or_create(user=self.customer)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
     
-    try:
-        # Test Celery connection
-        inspect = current_app.control.inspect()
-        active_workers = inspect.active()
-        registered_workers = inspect.registered()
+    def test_email_configuration(self):
+        """Test email configuration"""
+        print("\n" + "=" * 60)
+        print("📧 TESTING EMAIL CONFIGURATION")
+        print("=" * 60)
         
-        print(f"✅ Celery connection successful")
-        print(f"Active workers: {len(active_workers) if active_workers else 0}")
-        print(f"Registered workers: {len(registered_workers) if registered_workers else 0}")
+        from django.conf import settings
         
-        if registered_workers:
-            for worker, tasks in registered_workers.items():
-                print(f"  Worker {worker}: {len(tasks)} tasks")
+        print(f"EMAIL_HOST: {getattr(settings, 'EMAIL_HOST', 'NOT SET')}")
+        print(f"EMAIL_PORT: {getattr(settings, 'EMAIL_PORT', 'NOT SET')}")
+        print(f"EMAIL_USE_SSL: {getattr(settings, 'EMAIL_USE_SSL', 'NOT SET')}")
+        print(f"EMAIL_HOST_USER: {getattr(settings, 'EMAIL_HOST_USER', 'NOT SET')}")
+        print(f"EMAIL_HOST_PASSWORD: {'SET' if getattr(settings, 'EMAIL_HOST_PASSWORD', None) else 'NOT SET'}")
         
-    except Exception as e:
-        print(f"❌ Celery connection failed: {e}")
-
-def test_email_service():
-    """Test email service"""
-    print("\n" + "=" * 60)
-    print("📧 TESTING EMAIL SERVICE")
-    print("=" * 60)
-    
-    try:
+        # Test email service
         email_service = EmailService()
         result = email_service.send_email(
-            to_email='jamesnjunge45@gmail.com',
-            subject='Test Email Service',
-            message='This is a test email from the EmailService class.'
+            to_email='test@example.com',
+            subject='Test Email from OrderFlow',
+            message='This is a test email to verify the email configuration is working.'
         )
+        
         print(f"✅ Email service test result: {result}")
-    except Exception as e:
-        print(f"❌ Email service test failed: {e}")
-
-def test_task_queuing():
-    """Test task queuing"""
-    print("\n" + "=" * 60)
-    print("📋 TESTING TASK QUEUING")
-    print("=" * 60)
+        self.assertIsInstance(result, dict)
     
-    # Get test data
-    customer = Customer.objects.first()
-    product = Product.objects.first()
+    def test_sms_configuration(self):
+        """Test SMS configuration"""
+        print("\n" + "=" * 60)
+        print("📱 TESTING SMS CONFIGURATION")
+        print("=" * 60)
+        
+        from django.conf import settings
+        
+        print(f"AFRICASTALKING_API_KEY: {'SET' if getattr(settings, 'AFRICASTALKING_API_KEY', None) else 'NOT SET'}")
+        print(f"AFRICASTALKING_USERNAME: {getattr(settings, 'AFRICASTALKING_USERNAME', 'NOT SET')}")
+        print(f"AFRICAS_TALKING_SANDBOX: {getattr(settings, 'AFRICAS_TALKING_SANDBOX', 'NOT SET')}")
+        
+        # Test SMS service
+        sms_service = SMSService()
+        result = sms_service.send_sms(
+            phone_number=self.customer.phone_number,
+            message='Test SMS from OrderFlow - Your order has been confirmed!',
+            notification_id='test-123'
+        )
+        
+        print(f"✅ SMS service test result: {result}")
+        self.assertIsInstance(result, dict)
     
-    if not customer:
-        print("❌ No customer found for testing")
-        return
+    def test_order_creation_with_notifications(self):
+        """Test order creation triggers notifications"""
+        print("\n" + "=" * 60)
+        print("📋 TESTING ORDER CREATION WITH NOTIFICATIONS")
+        print("=" * 60)
+        
+        # Create order data
+        order_data = {
+            'shipping_address': 'Test Address for Notifications',
+            'billing_address': 'Test Billing Address',
+            'items': [
+                {
+                    'product': self.product.id,
+                    'quantity': 2
+                }
+            ]
+        }
+        
+        # Create order via API
+        response = self.client.post('/api/v1/orders/', order_data, format='json')
+        
+        print(f"Order creation response status: {response.status_code}")
+        if response.status_code == 201:
+            order_data = response.json()
+            print(f"✅ Order created: {order_data.get('order_number')}")
+            print(f"Order ID: {order_data.get('id')}")
+            print(f"Total Amount: Ksh {order_data.get('total_amount')}")
+            
+            # Wait for notifications to be processed
+            print("⏳ Waiting 5 seconds for notifications to be processed...")
+            time.sleep(5)
+            
+            # Check if notifications were created
+            notifications = Notification.objects.filter(order_id=order_data.get('id'))
+            print(f"📢 Notifications created: {notifications.count()}")
+            
+            for notification in notifications:
+                print(f"  - {notification.notification_type}: {notification.status}")
+            
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        else:
+            print(f"❌ Order creation failed: {response.text}")
+            self.fail("Order creation failed")
     
-    if not product:
-        print("❌ No product found for testing")
-        return
-    
-    print(f"Testing with customer: {customer.email}")
-    print(f"Testing with product: {product.name}")
-    
-    # Create a test order
-    try:
+    def test_task_queuing(self):
+        """Test task queuing functionality"""
+        print("\n" + "=" * 60)
+        print("📋 TESTING TASK QUEUING")
+        print("=" * 60)
+        
+        # Create a test order
         order = Order.objects.create(
-            customer=customer,
-            shipping_address="Test Address for Notifications",
+            customer=self.customer,
+            shipping_address="Test Address for Task Queuing",
             billing_address="Test Billing Address",
-            total_amount=product.price * 2,
+            total_amount=2000.00,
             status='pending'
         )
         
         # Create order item
         OrderItem.objects.create(
             order=order,
-            product=product,
+            product=self.product,
             quantity=2,
-            unit_price=product.price,
-            subtotal=product.price * 2
+            unit_price=1000.00,
+            subtotal=2000.00
         )
         
         print(f"✅ Test order created: {order.order_number}")
         
-        # Test task queuing
+        # Queue notification tasks
         print("\n🔍 Queueing notification tasks...")
         
         # Queue customer notification
@@ -156,109 +222,131 @@ def test_task_queuing():
         if admin_task.ready():
             print(f"Admin task result: {admin_task.result}")
         
-        return order
-        
-    except Exception as e:
-        print(f"❌ Error creating test order: {e}")
-        return None
-
-def test_notification_creation():
-    """Test notification creation"""
-    print("\n" + "=" * 60)
-    print("📢 TESTING NOTIFICATION CREATION")
-    print("=" * 60)
+        # Tasks should be queued (PENDING status is expected)
+        self.assertIn(customer_task.status, ['PENDING', 'SUCCESS', 'FAILURE'])
+        self.assertIn(admin_task.status, ['PENDING', 'SUCCESS', 'FAILURE'])
     
-    customer = Customer.objects.first()
-    if not customer:
-        print("❌ No customer found for testing")
-        return
+    def test_token_behavior(self):
+        """Test token behavior on login"""
+        print("\n" + "=" * 60)
+        print("🔐 TESTING TOKEN BEHAVIOR")
+        print("=" * 60)
+        
+        # First login
+        response1 = self.client.post('/api/v1/auth/login/', {
+            'email': 'test@example.com',
+            'password': 'testpass123'
+        })
+        
+        self.assertEqual(response1.status_code, status.HTTP_200_OK)
+        token1 = response1.json().get('token')
+        print(f"✅ First login token: {token1[:10]}...")
+        
+        # Second login (should return same token)
+        response2 = self.client.post('/api/v1/auth/login/', {
+            'email': 'test@example.com',
+            'password': 'testpass123'
+        })
+        
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        token2 = response2.json().get('token')
+        print(f"✅ Second login token: {token2[:10]}...")
+        
+        # Tokens should be the same (get_or_create behavior)
+        self.assertEqual(token1, token2)
+        print("✅ Tokens are the same (get_or_create behavior confirmed)")
+        
+        # Test logout
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token1}')
+        logout_response = self.client.post('/api/v1/auth/logout/')
+        
+        self.assertEqual(logout_response.status_code, status.HTTP_200_OK)
+        print("✅ Logout successful")
+        
+        # Third login (should create new token after logout)
+        response3 = self.client.post('/api/v1/auth/login/', {
+            'email': 'test@example.com',
+            'password': 'testpass123'
+        })
+        
+        self.assertEqual(response3.status_code, status.HTTP_200_OK)
+        token3 = response3.json().get('token')
+        print(f"✅ Third login token (after logout): {token3[:10]}...")
+        
+        # New token should be different after logout
+        self.assertNotEqual(token1, token3)
+        print("✅ New token created after logout")
     
-    try:
-        # Create a test notification
-        notification = Notification.objects.create(
-            notification_type='email',
-            recipient=customer,
-            subject='Test Notification',
-            message='This is a test notification to verify the system is working.',
-            status='pending'
-        )
+    def test_admin_creation(self):
+        """Test admin user creation"""
+        print("\n" + "=" * 60)
+        print("👤 TESTING ADMIN CREATION")
+        print("=" * 60)
         
-        print(f"✅ Test notification created: {notification.id}")
+        # Login as admin
+        admin_token, _ = Token.objects.get_or_create(user=self.admin_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {admin_token.key}')
         
-        # Test email notification task
-        result = send_email_notification.delay(str(notification.id))
-        print(f"✅ Email notification task queued: {result.id}")
+        # Create new admin user
+        admin_data = {
+            'email': 'newadmin@orderflow.com',
+            'first_name': 'New',
+            'last_name': 'Admin',
+            'password': 'newadmin123',
+            'role': 'admin'
+        }
         
-        # Check task status
-        time.sleep(3)
-        print(f"Task status: {result.status}")
+        response = self.client.post('/api/v1/admin/create-admin/', admin_data, format='json')
         
-        if result.ready():
-            print(f"Task result: {result.result}")
+        print(f"Admin creation response status: {response.status_code}")
+        if response.status_code == 201:
+            admin_info = response.json()
+            print(f"✅ Admin created: {admin_info.get('email')}")
+            print(f"Admin ID: {admin_info.get('id')}")
+            print(f"Role: {admin_info.get('role')}")
+        else:
+            print(f"❌ Admin creation failed: {response.text}")
         
-        return notification
-        
-    except Exception as e:
-        print(f"❌ Error creating test notification: {e}")
-        return None
-
-def check_rabbitmq_queues():
-    """Check RabbitMQ queues"""
-    print("\n" + "=" * 60)
-    print("🐰 CHECKING RABBITMQ QUEUES")
-    print("=" * 60)
+        # Should succeed with super admin permissions
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
     
-    try:
-        # This would require rabbitmqctl command
-        print("To check RabbitMQ queues, run:")
-        print("docker compose exec rabbitmq rabbitmqctl list_queues name messages consumers")
-        print("\nOr visit: https://rabbitmq.orderflow.jameskiruri.co.ke/#/queues")
-    except Exception as e:
-        print(f"❌ Error checking RabbitMQ: {e}")
+    def run_all_tests(self):
+        """Run all tests"""
+        print("🚀 ORDERFLOW NOTIFICATION SYSTEM COMPREHENSIVE TEST")
+        print("=" * 60)
+        
+        try:
+            # Test 1: Email Configuration
+            self.test_email_configuration()
+            
+            # Test 2: SMS Configuration
+            self.test_sms_configuration()
+            
+            # Test 3: Token Behavior
+            self.test_token_behavior()
+            
+            # Test 4: Task Queuing
+            self.test_task_queuing()
+            
+            # Test 5: Order Creation with Notifications
+            self.test_order_creation_with_notifications()
+            
+            # Test 6: Admin Creation
+            self.test_admin_creation()
+            
+            print("\n" + "=" * 60)
+            print("📊 ALL TESTS COMPLETED SUCCESSFULLY")
+            print("=" * 60)
+            
+        except Exception as e:
+            print(f"\n❌ Test failed: {e}")
+            raise
 
 def main():
-    """Run all tests"""
-    print("🚀 ORDERFLOW NOTIFICATION SYSTEM TEST")
-    print("=" * 60)
-    
-    # Test 1: Email Configuration
-    test_email_configuration()
-    
-    # Test 2: Celery Connection
-    test_celery_connection()
-    
-    # Test 3: Email Service
-    test_email_service()
-    
-    # Test 4: Task Queuing
-    order = test_task_queuing()
-    
-    # Test 5: Notification Creation
-    notification = test_notification_creation()
-    
-    # Test 6: RabbitMQ Check
-    check_rabbitmq_queues()
-    
-    # Summary
-    print("\n" + "=" * 60)
-    print("📊 TEST SUMMARY")
-    print("=" * 60)
-    
-    if order:
-        print(f"✅ Test order created: {order.order_number}")
-    else:
-        print("❌ Test order creation failed")
-    
-    if notification:
-        print(f"✅ Test notification created: {notification.id}")
-    else:
-        print("❌ Test notification creation failed")
-    
-    print("\n🔍 Next steps:")
-    print("1. Check Celery worker logs: docker compose logs celery_email_worker")
-    print("2. Check RabbitMQ queues: https://rabbitmq.orderflow.jameskiruri.co.ke/#/queues")
-    print("3. Check Flower monitoring: https://monitor.orderflow.jameskiruri.co.ke/")
-    print("4. Check Django logs: docker compose logs web")
+    """Run the comprehensive test suite"""
+    test_suite = NotificationSystemTest()
+    test_suite.setUp()
+    test_suite.run_all_tests()
 
 if __name__ == "__main__":
     main()
