@@ -6,9 +6,13 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     environment:
       - DJANGO_SETTINGS_MODULE=orderflow.settings
-      - DATABASE_URL=postgresql://orderflow_user:orderflow_password@postgres:5432/orderflow
-      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     ports:
       - "8002:8000"
     volumes:
@@ -31,9 +35,9 @@ services:
     image: postgres:15
     container_name: orderflow_postgres
     environment:
-      POSTGRES_DB: orderflow
-      POSTGRES_USER: orderflow_user
-      POSTGRES_PASSWORD: orderflow_password
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5434:5432"
     volumes:
@@ -41,7 +45,7 @@ services:
     networks:
       - orderflow_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U orderflow_user -d orderflow"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -67,9 +71,9 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: orderflow_rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: orderflow_user
-      RABBITMQ_DEFAULT_PASS: orderflow_password
-      RABBITMQ_DEFAULT_VHOST: orderflow
+      RABBITMQ_DEFAULT_USER: ${DB_USER}
+      RABBITMQ_DEFAULT_PASS: ${DB_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${DB_NAME}
     ports:
       - "5674:5672"   # AMQP port
       - "15674:15672" # Management UI port
@@ -90,8 +94,13 @@ services:
     command: celery -A orderflow worker -Q sms -l info --concurrency=2
     environment:
       - DJANGO_SETTINGS_MODULE=orderflow.settings
-      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     volumes:
       - .:/app
     depends_on:
@@ -112,8 +121,13 @@ services:
     command: celery -A orderflow worker -Q email -l info --concurrency=3
     environment:
       - DJANGO_SETTINGS_MODULE=orderflow.settings
-      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     volumes:
       - .:/app
     depends_on:
@@ -134,8 +148,13 @@ services:
     command: celery -A orderflow worker -Q notifications -l info --concurrency=2
     environment:
       - DJANGO_SETTINGS_MODULE=orderflow.settings
-      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     volumes:
       - .:/app
     depends_on:
@@ -156,8 +175,13 @@ services:
     command: celery -A orderflow beat -l info
     environment:
       - DJANGO_SETTINGS_MODULE=orderflow.settings
-      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     volumes:
       - .:/app
     depends_on:
@@ -178,8 +202,13 @@ services:
     command: celery -A orderflow flower --port=5555
     environment:
       - DJANGO_SETTINGS_MODULE=orderflow.settings
-      - CELERY_BROKER_URL=amqp://orderflow_user:orderflow_password@rabbitmq:5672/orderflow
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     ports:
       - "5557:5555"
     volumes:
