@@ -23,13 +23,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . /app/
 
-# Create logs directory and set permissions
+# Create logs directory and log files with proper permissions
 RUN mkdir -p /app/logs
+RUN touch /app/logs/orderflow.log
+RUN touch /app/logs/sms.log
+RUN touch /app/logs/error.log
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser
 RUN chown -R appuser:appuser /app
 RUN chmod -R 755 /app/logs
+RUN chmod 644 /app/logs/*.log
 USER appuser
 
 # Expose port
