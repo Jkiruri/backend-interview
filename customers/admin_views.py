@@ -20,7 +20,43 @@ class IsAdminUser(permissions.BasePermission):
     """Custom permission to only allow admin users"""
     
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_admin()
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            return False
+        
+        # Check if user is a superuser (Django's built-in admin)
+        if request.user.is_superuser:
+            return True
+        
+        # Check if user has admin profile and is active
+        if hasattr(request.user, 'admin_profile'):
+            return request.user.admin_profile.is_active
+        
+        # Check if user is staff (Django's built-in staff)
+        if request.user.is_staff:
+            return True
+        
+        return False
+
+
+class CanCreateAdmin(permissions.BasePermission):
+    """Permission to create admin users - only super admins can do this"""
+    
+    def has_permission(self, request, view):
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            return False
+        
+        # Superusers can always create admins
+        if request.user.is_superuser:
+            return True
+        
+        # Check if user has admin profile with super_admin role
+        if hasattr(request.user, 'admin_profile'):
+            return (request.user.admin_profile.is_active and 
+                   request.user.admin_profile.role == 'super_admin')
+        
+        return False
 
 
 class AdminViewSet(viewsets.ViewSet):
@@ -141,7 +177,7 @@ class AdminViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=[CanCreateAdmin])
     def create_admin(self, request):
         """Create a new admin user"""
         try:

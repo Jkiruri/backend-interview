@@ -31,10 +31,11 @@ class Command(BaseCommand):
             logger.error(f'Database seeding failed: {str(e)}')
 
     def create_admin_user(self):
-        """Create admin user if it doesn't exist"""
+        """Create super admin user if it doesn't exist"""
         User = get_user_model()
         
         if not User.objects.filter(email='admin@orderflow.com').exists():
+            # Create the superuser
             admin_user = User.objects.create_superuser(
                 email='admin@orderflow.com',
                 password='admin123',
@@ -43,7 +44,55 @@ class Command(BaseCommand):
             )
             self.stdout.write(f'Created admin user: {admin_user.email}')
         else:
+            admin_user = User.objects.get(email='admin@orderflow.com')
             self.stdout.write('Admin user already exists')
+        
+        # Create or update the Admin profile with super_admin role
+        admin_profile, created = Admin.objects.get_or_create(
+            user=admin_user,
+            defaults={
+                'role': 'super_admin',
+                'permissions': {
+                    'permissions': [
+                        'manage_products',
+                        'manage_customers', 
+                        'manage_orders',
+                        'manage_admins',
+                        'view_reports',
+                        'send_notifications',
+                        'create_admins'
+                    ]
+                },
+                'is_active': True
+            }
+        )
+        
+        if not created:
+            # Update existing admin profile to super_admin
+            admin_profile.role = 'super_admin'
+            admin_profile.is_active = True
+            admin_profile.permissions = {
+                'permissions': [
+                    'manage_products',
+                    'manage_customers', 
+                    'manage_orders',
+                    'manage_admins',
+                    'view_reports',
+                    'send_notifications',
+                    'create_admins'
+                ]
+            }
+            admin_profile.save()
+            self.stdout.write(f'Updated admin profile to super_admin role')
+        else:
+            self.stdout.write(f'Created super admin profile for: {admin_user.email}')
+        
+        # Ensure the user is staff and superuser
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.save()
+        
+        self.stdout.write(f'Admin user {admin_user.email} is now super_admin with full permissions')
 
     def create_categories(self):
         """Create product categories"""

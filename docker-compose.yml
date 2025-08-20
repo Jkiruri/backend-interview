@@ -199,7 +199,7 @@ services:
   flower:
     build: .
     container_name: orderflow_flower
-    command: celery -A orderflow flower --port=5555
+    command: celery -A orderflow flower --config=flower_config --port=5555
     environment:
       - DJANGO_SETTINGS_MODULE=orderflow.settings
       - DB_NAME=${DB_NAME}
@@ -209,6 +209,7 @@ services:
       - DB_PORT=${DB_PORT}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - FLOWER_BASIC_AUTH=${FLOWER_USER}:${FLOWER_PASSWORD}
     ports:
       - "5557:5555"
     volumes:
