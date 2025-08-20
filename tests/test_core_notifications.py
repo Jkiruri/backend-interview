@@ -42,7 +42,7 @@ class CoreNotificationTest:
         
         # Create test customer
         self.customer, created = Customer.objects.get_or_create(
-            email='test@example.com',
+            email='jamesnjunge45@gmail.com',
             defaults={
                 'password': 'testpass123',
                 'first_name': 'Test',
