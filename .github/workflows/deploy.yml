@@ -1,0 +1,81 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+        
+    - name: Add server to known hosts
+      run: |
+        ssh-keyscan -H ${{ vars.SERVER_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: Deploy to server
+      run: |
+        ssh ${{ vars.SERVER_USER }}@${{ vars.SERVER_HOST }} << 'EOF'
+          cd ${{ vars.DEPLOY_PATH }}
+          
+          echo "Starting deployment process..."
+          
+          # Pull latest changes
+          echo "Pulling latest code..."
+          git pull origin main
+          
+          # Stop all containers gracefully
+          echo "Stopping containers..."
+          docker compose down
+          
+          # Build images with no cache to ensure latest changes
+          echo "Building Docker images..."
+          docker compose build --no-cache
+          
+          # Start all services in detached mode
+          echo "Starting services..."
+          docker compose up -d
+          
+          # Wait for services to be healthy
+          echo "Waiting for services to be ready..."
+          sleep 45
+          
+          # Check service status
+          echo "Checking service status..."
+          docker compose ps
+          
+          # Wait for database to be ready before running migrations
+          echo "Waiting for database to be ready..."
+          sleep 15
+          
+          # Run database migrations
+          echo "Running database migrations..."
+          docker compose exec -T web python manage.py migrate
+          
+          # Collect static files
+          echo "Collecting static files..."
+          docker compose exec -T web python manage.py collectstatic --noinput
+          
+          # Seed initial data (uncomment if needed for first deployment)
+          # echo "Seeding initial data..."
+          docker compose exec -T web python manage.py seed_data
+          
+          # Run additional seeder script (uncomment if needed)
+          # echo "Running additional seeders..."
+          docker compose exec -T web python seeder/seeders.py
+          
+          # Final status check
+          echo "Final service status:"
+          docker compose ps
+          
+          echo "Deployment completed successfully!"
+        EOF
