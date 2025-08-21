@@ -43,10 +43,23 @@ class CategoryViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(root_categories, many=True)
         return Response(serializer.data)
     
-    @action(detail=True, methods=['get'])
-    def average_price(self, request, pk=None):
-        """Get average price for a specific category"""
-        category = self.get_object()
+    @action(detail=False, methods=['get'])
+    def average_price(self, request):
+        """Get average price for a specific category by slug"""
+        slug = request.query_params.get('slug')
+        if not slug:
+            return Response(
+                {'error': 'slug parameter is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            category = Category.objects.get(slug=slug)
+        except Category.DoesNotExist:
+            return Response(
+                {'error': 'Category not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         # Get products in this category and its descendants
         descendant_ids = [category.id] + [c.id for c in category.get_descendants()]
@@ -59,6 +72,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
             return Response({
                 'category_id': category.id,
                 'category_name': category.name,
+                'category_slug': category.slug,
                 'average_price': 0,
                 'product_count': 0,
                 'min_price': 0,
@@ -76,6 +90,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         data = {
             'category_id': category.id,
             'category_name': category.name,
+            'category_slug': category.slug,
             'average_price': stats['avg_price'] or 0,
             'product_count': stats['product_count'],
             'min_price': stats['min_price'] or 0,
@@ -111,6 +126,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
                 result.append({
                     'category_id': category.id,
                     'category_name': category.name,
+                    'category_slug': category.slug,
                     'average_price': float(avg_price),
                     'product_count': product_count
                 })

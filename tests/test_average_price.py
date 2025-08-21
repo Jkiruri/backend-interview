@@ -65,7 +65,7 @@ def test_average_price_endpoint():
     print(f"\n3. Testing average price for category: {category_slug}")
     try:
         response = requests.get(
-            f"{BASE_URL}/api/v1/categories/{category_slug}/average-price/",
+            f"{BASE_URL}/api/v1/categories/average-price/?slug={category_slug}",
             headers=headers
         )
         

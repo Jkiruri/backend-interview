@@ -21,7 +21,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"password_confirm\": \"password123\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"phone_number\": \"+254700123456\",\n    \"address\": \"123 Test St, Nairobi, Kenya\",\n    \"city\": \"Nairobi\",\n    \"state\": \"Nairobi\",\n    \"country\": \"Kenya\",\n    \"postal_code\": \"00100\"\n}"
+							"raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\",\n    \"password_confirm\": \"password123\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"phone_number\": \"+254700123456\",\n    \"address\": \"123 Main St, Nairobi, Kenya\",\n    \"city\": \"Nairobi\",\n    \"state\": \"Nairobi\",\n    \"country\": \"Kenya\",\n    \"postal_code\": \"00100\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/auth/register/",
@@ -42,7 +42,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/auth/login/",
@@ -453,23 +453,7 @@
 						}
 					}
 				},
-				{
-					"name": "Verify Customer",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{admin_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/admin/customers/{{customer_id}}/verify/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "admin", "customers", "{{customer_id}}", "verify", ""]
-						}
-					}
-				},
+
 				{
 					"name": "Deactivate Customer",
 					"request": {
@@ -517,31 +501,7 @@
 						}
 					}
 				},
-				{
-					"name": "Update Admin Permissions",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{admin_token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"permissions\": [\"products\", \"orders\", \"customers\", \"reports\"]\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/admin/{{admin_id}}/update-permissions/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "admin", "{{admin_id}}", "update-permissions", ""]
-						}
-					}
-				},
+
 				{
 					"name": "Deactivate Admin",
 					"request": {
@@ -558,70 +518,6 @@
 							"path": ["api", "v1", "admin", "{{admin_id}}", "deactivate", ""]
 						}
 					}
-				},
-				{
-					"name": "Send System Alert",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{admin_token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"alert_type\": \"maintenance\",\n    \"message\": \"System will be under maintenance from 2-4 AM\",\n    \"details\": {\n        \"duration\": \"2 hours\",\n        \"affected_services\": [\"orders\", \"payments\"]\n    }\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/admin/send-system-alert/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "admin", "send-system-alert", ""]
-						}
-					}
-				},
-				{
-					"name": "Send Daily Report",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{admin_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/admin/send-daily-report/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "admin", "send-daily-report", ""]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Notifications",
-			"item": [
-				{
-					"name": "Get Customer Notifications",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Token {{customer_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/notifications/",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "notifications", ""]
-						}
-					}
 				}
 			]
 		}
@@ -629,7 +525,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8000",
+			"value": "https://orderflow.jameskiruri.co.ke/",
 			"type": "string"
 		},
 		{
